@@ -55,6 +55,7 @@ void Copter::update_land_detector()
             // this should never happen because take-off should be detected at the flight mode level
             // this here to highlight there is a bug or missing take-off detection
             INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            //internal_error need to be edit
 #endif
             set_land_complete(false);
         }
