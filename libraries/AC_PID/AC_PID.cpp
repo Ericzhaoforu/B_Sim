@@ -64,6 +64,10 @@ const AP_Param::GroupInfo AC_PID::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("SMAX", 12, AC_PID, _slew_rate_max, 0),
 
+
+
+
+
     AP_GROUPEND
 };
 
@@ -266,7 +270,11 @@ void AC_PID::reset_I()
     _integrator = 0.0;
     _pid_info.I = 0.0;
 }
+float AC_PID::show_kp()
+{
+    return _kp.get();
 
+}
 void AC_PID::load_gains()
 {
     _kp.load();

@@ -185,6 +185,7 @@ public:
     friend class AP_Rally_Copter;
     friend class Parameters;
     friend class ParametersG2;
+    friend class ParametersG7;//ADD PARAMETERS TO 2BBOT
     friend class AP_Avoidance_Copter;
 
 #if ADVANCED_FAILSAFE == ENABLED
@@ -235,7 +236,7 @@ private:
     // Global parameters are all contained within the 'g' class.
     Parameters g;
     ParametersG2 g2;
-
+    ParametersG7 g7;
     // used to detect MAVLink acks from GCS to stop compassmot
     uint8_t command_ack_counter;
 

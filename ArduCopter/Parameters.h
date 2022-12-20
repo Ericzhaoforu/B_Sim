@@ -381,6 +381,7 @@ public:
         // 254,255: reserved
 
         k_param_vehicle = 257, // vehicle common block of parameters
+        k_param_g7,
 
         // the k_param_* space is 9-bits in size
         // 511: reserved
@@ -684,3 +685,28 @@ public:
 };
 
 extern const AP_Param::Info        var_info[];
+
+/*
+  3nd block of parameters, to avoid going past 256 top level keys,easy to maintain 
+  The meaning of 7 is because 7 is my lucky number,and I dont wanna cause some sb bug
+  This block is for the param that use in the hybrid and ground mode
+ */
+
+class ParametersG7 {
+public:
+    ParametersG7(void){
+
+
+    };
+    // var_info for holding Parameter information
+    static const struct AP_Param::GroupInfo var_info[];
+#if BB_ENABLE==DISABLED
+    AP_Float bb_pit_r_P;
+    AP_Float bb_pit_r_I;
+    // AP_Float bb_pit_r_D;
+    // AP_Float bb_pit_r_IMAX;
+    // AP_Float bb_pit_fltt;
+    // AP_Float bb_pit_flte;
+#endif
+
+};

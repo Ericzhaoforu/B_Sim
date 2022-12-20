@@ -727,7 +727,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Group:
     // @Path: Parameters.cpp
     GOBJECT(g2, "",  ParametersG2),
-
+    GOBJECT(g7, "",  ParametersG7),
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
     { AP_PARAM_GROUP, "", Parameters::k_param_vehicle, (const void *)&copter, {group_info : AP_Vehicle::var_info} },
@@ -1175,6 +1175,32 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 };
 
 /*
+  3nd group of parameters
+  used by 2bbot 
+ */
+const AP_Param::GroupInfo ParametersG7::var_info[] = {
+
+    // @Param: BB_PIT_R_P
+    // @DisplayName: BB GROUND PITCH RATE P
+    // @Description: PID controller use in the ground
+    // @Range:0-1
+    // @User: Standard
+    AP_GROUPINFO("BB_PIT_R_P", 1, ParametersG7,bb_pit_r_P, 0),
+
+    // @Param: BB_PIT_R_I
+    // @DisplayName: BB GROUND PITCH RATE P
+    // @Description: PID controller use in the ground
+    // @Range:0-1
+    // @User: Standard
+    AP_GROUPINFO("BB_PIT_R_I", 2, ParametersG7,bb_pit_r_I, 0),
+    
+    
+    
+    AP_GROUPEND
+};
+
+
+/*
   constructor for g2 object
  */
 ParametersG2::ParametersG2(void)
@@ -1232,6 +1258,15 @@ ParametersG2::ParametersG2(void)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }
+
+
+
+
+
+
+
+
+
 
 /*
   This is a conversion table from old parameter values to new

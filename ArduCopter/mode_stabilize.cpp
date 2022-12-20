@@ -8,6 +8,7 @@
 // should be called at 100hz or more
 void ModeStabilize::run()
 {
+    
     // apply simple mode transform to pilot inputs
     update_simple_mode();
 

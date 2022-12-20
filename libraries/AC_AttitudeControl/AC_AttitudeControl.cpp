@@ -1,8 +1,8 @@
 #include "AC_AttitudeControl.h"
 #include <AP_HAL/AP_HAL.h>
+#include <AP_HAL/GPIO.cpp>//THIS SHOULD BE REMOVED AFTER DEBUGGING
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Scheduler/AP_Scheduler.h>
-
 extern const AP_HAL::HAL& hal;
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
@@ -266,6 +266,7 @@ void AC_AttitudeControl::input_quaternion(Quaternion& attitude_desired_quat, Vec
 // Command an euler roll and pitch angle and an euler yaw rate with angular velocity feedforward and smoothing
 void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_rate_cds)
 {
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Best number ever: %f", get_BRe_roll_pid().show_kp());
     // Convert from centidegrees on public interface to radians
     float euler_roll_angle = radians(euler_roll_angle_cd * 0.01f);
     float euler_pitch_angle = radians(euler_pitch_angle_cd * 0.01f);

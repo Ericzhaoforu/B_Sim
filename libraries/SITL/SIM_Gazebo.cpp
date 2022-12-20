@@ -66,6 +66,7 @@ void Gazebo::send_servos(const struct sitl_input &input)
     for (unsigned i = 0; i < 16; ++i)
     {
       pkt.motor_speed[i] = (input.servos[i]-1000) / 1000.0f;
+      printf("\nch:%d,%f.",i,(input.servos[i]-1000) / 1000.0f);
     }
     socket_sitl.sendto(&pkt, sizeof(pkt), _gazebo_address, _gazebo_port);
 }

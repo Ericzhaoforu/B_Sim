@@ -4,6 +4,7 @@
 #include <AP_Math/chirp.h>
 class Parameters;
 class ParametersG2;
+class ParametersG7;
 
 class GCS_Copter;
 
@@ -173,6 +174,7 @@ protected:
     // convenience references to avoid code churn in conversion:
     Parameters &g;
     ParametersG2 &g2;
+    ParametersG7 &g7;
     AC_WPNav *&wp_nav;
     AC_Loiter *&loiter_nav;
     AC_PosControl *&pos_control;
