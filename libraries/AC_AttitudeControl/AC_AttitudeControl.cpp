@@ -150,6 +150,54 @@ const AP_Param::GroupInfo AC_AttitudeControl::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("INPUT_TC", 20, AC_AttitudeControl, _input_tc, AC_ATTITUDE_CONTROL_INPUT_TC_DEFAULT),
 
+    // @Param: AGG_RLL_P
+    // @DisplayName: Roll axis angle controller P gain
+    // @Description: Roll axis angle controller P gain.  Converts the error between the desired roll angle and actual angle to a desired roll rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 12.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gg_roll, "AGG_RLL_", 21, AC_AttitudeControl, AC_P),
+
+    // @Param: AGG_PIT_P
+    // @DisplayName: Pitch axis angle controller P gain
+    // @Description: Pitch axis angle controller P gain.  Converts the error between the desired pitch angle and actual angle to a desired pitch rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 12.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gg_pitch, "AGG_PIT_", 22, AC_AttitudeControl, AC_P),
+
+    // @Param: AGG_YAW_P
+    // @DisplayName: Yaw axis angle controller P gain
+    // @Description: Yaw axis angle controller P gain.  Converts the error between the desired yaw angle and actual angle to a desired yaw rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 6.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gg_yaw, "AGG_YAW_", 23, AC_AttitudeControl, AC_P),
+
+    // @Param: AGW_RLL_P
+    // @DisplayName: Roll axis angle controller P gain
+    // @Description: Roll axis angle controller P gain.  Converts the error between the desired roll angle and actual angle to a desired roll rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 12.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gw_roll, "AGW_RLL_", 24, AC_AttitudeControl, AC_P),
+
+    // @Param: AGW_PIT_P
+    // @DisplayName: Pitch axis angle controller P gain
+    // @Description: Pitch axis angle controller P gain.  Converts the error between the desired pitch angle and actual angle to a desired pitch rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 12.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gw_pitch, "AGW_PIT_", 25, AC_AttitudeControl, AC_P),
+
+    // @Param: AGW_YAW_P
+    // @DisplayName: Yaw axis angle controller P gain
+    // @Description: Yaw axis angle controller P gain.  Converts the error between the desired yaw angle and actual angle to a desired yaw rate
+    // @Range: 3.000 12.000
+    // @Range{Sub}: 0.0 6.000
+    // @User: Standard
+    AP_SUBGROUPINFO(_p_ang_gw_yaw, "AGW_YAW_", 26, AC_AttitudeControl, AC_P),
+
     AP_GROUPEND
 };
 
@@ -266,7 +314,7 @@ void AC_AttitudeControl::input_quaternion(Quaternion& attitude_desired_quat, Vec
 // Command an euler roll and pitch angle and an euler yaw rate with angular velocity feedforward and smoothing
 void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_rate_cds)
 {
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Best number ever: %f", get_BRe_roll_pid().show_kp());
+    //GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Best number ever: %f", get_BRe_roll_pid().show_kp());
     // Convert from centidegrees on public interface to radians
     float euler_roll_angle = radians(euler_roll_angle_cd * 0.01f);
     float euler_pitch_angle = radians(euler_pitch_angle_cd * 0.01f);
@@ -274,7 +322,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler
 
     // calculate the attitude target euler angles
     _attitude_target.to_euler(_euler_angle_target.x, _euler_angle_target.y, _euler_angle_target.z);
-
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Best number ever: %f", euler_pitch_angle);
     // Add roll trim to compensate tail rotor thrust in heli (will return zero on multirotors)
     euler_roll_angle += get_roll_trim_rad();
 

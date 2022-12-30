@@ -4,6 +4,8 @@
     "files.associations": {
         "functional": "cpp",
         "typeindex": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "geometry": "cpp",
+        "cmath": "cpp"
     }
 }

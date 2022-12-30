@@ -91,6 +91,11 @@ public:
     virtual AC_PID& get_BRe_yaw_pid() = 0;
     virtual AC_PID& get_BRe_roll_pid() = 0;
     virtual AC_PID& get_BRe_pitch_pid() = 0;
+
+    virtual AC_PID& get_BRw_yaw_pid() = 0;
+    virtual AC_PID& get_BRw_roll_pid() = 0;
+    virtual AC_PID& get_BRw_pitch_pid() = 0;
+    
     // get the roll acceleration limit in centidegrees/s/s or radians/s/s
     float get_accel_roll_max_cdss() const { return _accel_roll_max; }
     float get_accel_roll_max_radss() const { return radians(_accel_roll_max * 0.01f); }
@@ -440,6 +445,14 @@ protected:
     AC_P                _p_angle_roll;
     AC_P                _p_angle_pitch;
     AC_P                _p_angle_yaw;
+
+    AC_P                _p_ang_gg_roll;
+    AC_P                _p_ang_gg_pitch;
+    AC_P                _p_ang_gg_yaw;
+
+    AC_P                _p_ang_gw_roll;
+    AC_P                _p_ang_gw_pitch;
+    AC_P                _p_ang_gw_yaw;
 
     // Angle limit time constant (to maintain altitude)
     AP_Float            _angle_limit_tc;

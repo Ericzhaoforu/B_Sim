@@ -53,6 +53,9 @@ public:
     AC_PID& get_BRe_yaw_pid()override{return _bb_pid_rate_yaw;}
     AC_PID& get_BRe_pitch_pid()override{return _bb_pid_rate_pitch;}
     AC_PID& get_BRe_roll_pid()override{return _bb_pid_rate_roll;}
+    AC_PID& get_BRw_yaw_pid()override{return _bbw_pid_rate_yaw;}
+    AC_PID& get_BRw_pitch_pid()override{return _bbw_pid_rate_pitch;}
+    AC_PID& get_BRw_roll_pid()override{return _bbw_pid_rate_roll;}
     // Update Alt_Hold angle maximum
     void update_althold_lean_angle_max(float throttle_in) override;
 
@@ -99,6 +102,11 @@ protected:
     AC_PID                _bb_pid_rate_roll;
     AC_PID                _bb_pid_rate_pitch;
     AC_PID                _bb_pid_rate_yaw;
+
+    AC_PID                _bbw_pid_rate_roll;
+    AC_PID                _bbw_pid_rate_pitch;
+    AC_PID                _bbw_pid_rate_yaw;
+
 
     AP_Float              _thr_mix_man;     // throttle vs attitude control prioritisation used when using manual throttle (higher values mean we prioritise attitude control over throttle)
     AP_Float              _thr_mix_min;     // throttle vs attitude control prioritisation used when landing (higher values mean we prioritise attitude control over throttle)
