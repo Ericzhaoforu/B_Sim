@@ -99,6 +99,7 @@ public:
 
     // pilot input processing
     void get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd, float angle_max_cd, float angle_limit_cd) const;
+    void get_pilot_desired_lean_angles_gw(float &roll_out_cd,float angle_max_cd) const;
     Vector2f get_pilot_desired_velocity(float vel_max) const;
     float get_pilot_desired_yaw_rate(float yaw_in);
     float get_pilot_desired_throttle() const;
@@ -187,6 +188,7 @@ protected:
     RC_Channel *&channel_throttle;
     RC_Channel *&channel_yaw;
     RC_Channel *&channel_mode;
+    RC_Channel *&channel_uncouple_pitch;
     float &G_Dt;
 
     // note that we support two entirely different automatic takeoffs:

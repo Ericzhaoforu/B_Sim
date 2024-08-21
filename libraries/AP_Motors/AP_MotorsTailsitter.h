@@ -32,7 +32,7 @@ public:
 
     // Set by tailsitters using diskloading minumum outflow velocity limit
     void set_min_throttle(float val) {_external_min_throttle = val;}
-
+    // calculate the angle
 protected:
     // calculate motor outputs
     void output_armed_stabilizing() override;
@@ -46,8 +46,19 @@ protected:
     float _throttle; // 0..1
     float _tilt_left;  // -1..1
     float _tilt_right;  // -1..1
+    float _tilt_left_gw;
+    float _tilt_right_gw;
     float _thrust_left;  // 0..1
     float _thrust_right;  // 0..1
+
+    float _tilt_left_gg;  // -1..1
+    float _tilt_right_gg;  // -1..1
+    float _tilt_wheel_left_gw;  // -1..1
+    float _tilt_wheel_right_gw;  // -1..1
+
+
+
+
 
     // Set by tailsitters using diskloading minumum outflow velocity limit
     float _external_min_throttle;

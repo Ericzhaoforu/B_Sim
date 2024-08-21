@@ -24,6 +24,7 @@ Mode::Mode(void) :
     channel_throttle(copter.channel_throttle),
     channel_yaw(copter.channel_yaw),
     channel_mode(copter.channel_mode),
+    channel_uncouple_pitch(copter.channel_uncouple_pitch),
     G_Dt(copter.G_Dt)
 { };
 
@@ -431,6 +432,17 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out_cd, float &pitch_out_cd
     // Convert to centi-degrees
     roll_out_cd = roll_out_deg * 100.0;
     pitch_out_cd = pitch_out_deg * 100.0;
+}
+void Mode::get_pilot_desired_lean_angles_gw(float &roll_out_cd, float angle_max_cd) const
+{
+    // throttle failsafe check
+    if (copter.failsafe.radio || !copter.ap.rc_receiver_present) {
+        roll_out_cd = 0.0;
+        return;
+    }
+    roll_out_cd=(channel_uncouple_pitch->get_control_in()-500)/500*angle_max_cd;
+
+
 }
 
 // transform pilot's roll or pitch input into a desired velocity

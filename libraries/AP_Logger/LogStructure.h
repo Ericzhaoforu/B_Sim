@@ -1265,7 +1265,7 @@ LOG_STRUCTURE_FROM_CAMERA \
       "SRTL", "QBHHBfff", "TimeUS,Active,NumPts,MaxPts,Action,N,E,D", "s----mmm", "F----000" }, \
 LOG_STRUCTURE_FROM_AVOIDANCE \
     { LOG_SIMSTATE_MSG, sizeof(log_AHRS), \
-      "SIM","QccCfLLffff","TimeUS,Roll,Pitch,Yaw,Alt,Lat,Lng,Q1,Q2,Q3,Q4", "sddhmDU????", "FBBB0GG????", true }, \
+      "SIM","QccCfLLfffffff","TimeUS,Roll,Pitch,Yaw,Alt,Lat,Lng,Q1,Q2,Q3,Q4,gyro_x,gyro_y,gyro_z", "sddhmDU???????", "FBBB0GG???????", true }, \
     { LOG_TERRAIN_MSG, sizeof(log_TERRAIN), \
       "TERR","QBLLHffHHf","TimeUS,Status,Lat,Lng,Spacing,TerrH,CHeight,Pending,Loaded,ROfs", "s-DU-mm--m", "F-GG-00--0", true }, \
 LOG_STRUCTURE_FROM_ESC_TELEM \

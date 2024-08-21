@@ -70,7 +70,8 @@
 #include <AP_ADSB/AP_ADSB.h>                // ADS-B RF based collision avoidance module library
 #include <AP_Proximity/AP_Proximity.h>      // ArduPilot proximity sensor library
 #include <AP_OpticalFlow/AP_OpticalFlow.h>
-
+#include <AP_WheelEncoder/AP_WheelEncoder.h>
+#include <AP_WheelEncoder/AP_WheelRateControl.h>
 // Configuration
 #include "defines.h"
 #include "config.h"
@@ -246,6 +247,7 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
     RC_Channel *channel_mode;
+    RC_Channel *channel_uncouple_pitch;
     AP_Logger logger;
 
     // flight modes convenience array
@@ -307,7 +309,10 @@ private:
 
     // Inertial Navigation EKF - different viewpoint
     AP_AHRS_View *ahrs_view;
-
+    
+    // AP_WheelEncoder wheel_encoder;
+    // AP_WheelRateControl wheel_rate_control;
+    
     // Arming/Disarming management class
     AP_Arming_Copter arming;
 
@@ -733,6 +738,7 @@ private:
     void parachute_release();
     void parachute_manual_release();
 
+    
     // ekf_check.cpp
     void ekf_check();
     bool ekf_over_threshold();
@@ -849,6 +855,7 @@ private:
     void set_mode_land_with_pause(ModeReason reason);
     bool landing_with_GPS();
 
+    void update_wheel_encoder();
     // motor_test.cpp
     void motor_test_output();
     bool mavlink_motor_control_check(const GCS_MAVLINK &gcs_chan, bool check_rc, const char* mode);
@@ -866,6 +873,12 @@ private:
     int32_t home_bearing();
     uint32_t home_distance();
 
+    // latest wheel encoder values
+    float wheel_encoder_last_distance_m[WHEELENCODER_MAX_INSTANCES];    // total distance recorded by wheel encoder (for reporting to GCS)
+    bool wheel_encoder_initialised;                                     // true once arrays below have been initialised to sensors initial values
+    float wheel_encoder_last_angle_rad[WHEELENCODER_MAX_INSTANCES];     // distance in radians at time of last update to EKF
+    uint32_t wheel_encoder_last_reading_ms[WHEELENCODER_MAX_INSTANCES]; // system time of last ping from each encoder
+    uint8_t wheel_encoder_last_index_sent; 
     // Parameters.cpp
     void load_parameters(void) override;
     void convert_pid_parameters(void);
@@ -898,10 +911,12 @@ private:
     bool rangefinder_alt_ok() const;
     bool rangefinder_up_ok() const;
     void update_optical_flow(void);
-
+    void logging_gg(void);
     // takeoff_check.cpp
     void takeoff_check();
-
+    AP_WheelEncoder& get_wheel_encoder() { return g2.wheel_encoder; }
+    AP_WheelRateControl& get_wheel_rate_control() { return g2.wheel_rate_control; }
+    void send_wheel_encoder_distance(mavlink_channel_t chan);
     // RC_Channel.cpp
     void save_trim();
     void auto_trim();
