@@ -1,0 +1,25 @@
+name: ChatGPT ITU PDF test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/chatgpt-itu-download.yml'
+      - 'chatgpt_itu/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create test artifact
+        run: |
+          mkdir -p out
+          printf 'ok\n' > out/status.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-itu-test
+          path: out
