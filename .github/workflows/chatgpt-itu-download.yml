@@ -1,4 +1,4 @@
-name: ChatGPT ITU-R PDF retry bundle
+name: ChatGPT ITU-R corrected-version PDFs
 
 on:
   push:
@@ -11,23 +11,23 @@ permissions:
   contents: read
 
 jobs:
-  retry:
+  corrections:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     env:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Check out temporary branch
         uses: actions/checkout@v4
 
-      - name: Retry missing ITU-R PDFs sequentially
+      - name: Download corrected current versions
         shell: bash
         run: |
           set -euxo pipefail
-          python -m py_compile itu_pdf_bundle/retry_failed.py
-          python itu_pdf_bundle/retry_failed.py
+          python -m py_compile itu_pdf_bundle/correct_stale.py
+          python itu_pdf_bundle/correct_stale.py
 
-      - name: Summarize generated files
+      - name: Validate generated PDF files
         shell: bash
         run: |
           set -euxo pipefail
@@ -36,10 +36,10 @@ jobs:
           find out -type f -name '*.pdf' | wc -l >> "$GITHUB_STEP_SUMMARY"
           du -sh out >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload retry bundle
+      - name: Upload corrected-version PDFs
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-1200-1400-retry-bundle-v2
-          path: out/ITU-R建议书1200-1400MHz汇总（第二轮补充）
+          name: itu-r-1200-1400-corrected-versions
+          path: out/ITU-R建议书1200-1400MHz汇总（版本校正补充）
           if-no-files-found: error
           retention-days: 7
