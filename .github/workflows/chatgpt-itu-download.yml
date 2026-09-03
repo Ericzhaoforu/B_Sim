@@ -1,4 +1,4 @@
-name: ChatGPT ITU PDF test
+name: ChatGPT ITU PDF network test
 
 on:
   push:
@@ -14,13 +14,58 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Create test artifact
+      - name: Test ITU and metadata downloads
+        shell: bash
         run: |
+          set -euxo pipefail
           mkdir -p out
-          printf 'ok\n' > out/status.txt
+          python - <<'PY'
+          import pathlib, re, urllib.request, urllib.error, json
+          out=pathlib.Path('out')
+          versions=['M.1639-1','P.452-18','M.1787-6']
+          results=[]
+          for version in versions:
+              slug='itu-r-'+version.lower().replace('.','-')+'.yaml'
+              meta=f'https://raw.githubusercontent.com/relaton/relaton-data-itu-r/v2/data/{slug}'
+              print('META',meta,flush=True)
+              req=urllib.request.Request(meta,headers={'User-Agent':'Mozilla/5.0'})
+              try:
+                  text=urllib.request.urlopen(req,timeout=60).read().decode('utf-8','replace')
+              except Exception as e:
+                  results.append({'version':version,'status':'metadata_failed','error':repr(e)})
+                  continue
+              m=re.search(r'content:\s*(https://www\.itu\.int/dms_pubrec/[^\s]+PDF-E\.pdf)',text)
+              if not m:
+                  results.append({'version':version,'status':'no_pdf_url'})
+                  continue
+              en=m.group(1)
+              candidates=[('C',en.replace('!!PDF-E.pdf','!!PDF-C.pdf')),('E',en)]
+              ok=False
+              for lang,url in candidates:
+                  print('GET',lang,url,flush=True)
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'application/pdf,*/*','Referer':f'https://www.itu.int/rec/R-REC-{version}/en'})
+                  try:
+                      data=urllib.request.urlopen(req,timeout=120).read()
+                      if data[:5] != b'%PDF-':
+                          raise ValueError(f'not PDF: {data[:40]!r}')
+                      p=out/f'{version}_{lang}.pdf'
+                      p.write_bytes(data)
+                      results.append({'version':version,'status':'ok','lang':lang,'url':url,'bytes':len(data),'file':str(p)})
+                      ok=True
+                      break
+                  except Exception as e:
+                      print('FAILED',lang,repr(e),flush=True)
+              if not ok:
+                  results.append({'version':version,'status':'download_failed','en_url':en})
+          (out/'results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(results,ensure_ascii=False,indent=2))
+          PY
+          file out/* || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chatgpt-itu-test
+          name: chatgpt-itu-network-test
           path: out
+          if-no-files-found: error
