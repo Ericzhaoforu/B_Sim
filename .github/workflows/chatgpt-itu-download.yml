@@ -1,8 +1,9 @@
 name: ChatGPT ITU PDF test
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches:
+      - chatgpt-itu-pdf-download-20260903
     paths:
       - '.github/workflows/chatgpt-itu-download.yml'
       - 'chatgpt_itu/**'
