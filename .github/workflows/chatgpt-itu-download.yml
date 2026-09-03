@@ -39,7 +39,7 @@ jobs:
       - name: Upload retry bundle
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-1200-1400-retry-bundle
+          name: itu-r-1200-1400-retry-bundle-v2
           path: out/ITU-R建议书1200-1400MHz汇总（第二轮补充）
           if-no-files-found: error
           retention-days: 7
