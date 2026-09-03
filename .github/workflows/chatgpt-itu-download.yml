@@ -1,4 +1,4 @@
-name: ChatGPT ITU PDF network test
+name: ChatGPT ITU-R PDF full bundle
 
 on:
   push:
@@ -6,66 +6,41 @@ on:
       - chatgpt-itu-pdf-download-20260903
     paths:
       - '.github/workflows/chatgpt-itu-download.yml'
-      - 'chatgpt_itu/**'
+      - 'itu_pdf_bundle/**'
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  download:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: Test ITU and metadata downloads
+      - name: Check out temporary branch
+        uses: actions/checkout@v4
+
+      - name: Download and validate ITU-R PDFs
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p out
-          python - <<'PY'
-          import pathlib, re, urllib.request, urllib.error, json
-          out=pathlib.Path('out')
-          versions=['M.1639-1','P.452-18','M.1787-6']
-          results=[]
-          for version in versions:
-              slug='itu-r-'+version.lower().replace('.','-')+'.yaml'
-              meta=f'https://raw.githubusercontent.com/relaton/relaton-data-itu-r/v2/data/{slug}'
-              print('META',meta,flush=True)
-              req=urllib.request.Request(meta,headers={'User-Agent':'Mozilla/5.0'})
-              try:
-                  text=urllib.request.urlopen(req,timeout=60).read().decode('utf-8','replace')
-              except Exception as e:
-                  results.append({'version':version,'status':'metadata_failed','error':repr(e)})
-                  continue
-              m=re.search(r'content:\s*(https://www\.itu\.int/dms_pubrec/[^\s]+PDF-E\.pdf)',text)
-              if not m:
-                  results.append({'version':version,'status':'no_pdf_url'})
-                  continue
-              en=m.group(1)
-              candidates=[('C',en.replace('!!PDF-E.pdf','!!PDF-C.pdf')),('E',en)]
-              ok=False
-              for lang,url in candidates:
-                  print('GET',lang,url,flush=True)
-                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'application/pdf,*/*','Referer':f'https://www.itu.int/rec/R-REC-{version}/en'})
-                  try:
-                      data=urllib.request.urlopen(req,timeout=120).read()
-                      if data[:5] != b'%PDF-':
-                          raise ValueError(f'not PDF: {data[:40]!r}')
-                      p=out/f'{version}_{lang}.pdf'
-                      p.write_bytes(data)
-                      results.append({'version':version,'status':'ok','lang':lang,'url':url,'bytes':len(data),'file':str(p)})
-                      ok=True
-                      break
-                  except Exception as e:
-                      print('FAILED',lang,repr(e),flush=True)
-              if not ok:
-                  results.append({'version':version,'status':'download_failed','en_url':en})
-          (out/'results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
-          print(json.dumps(results,ensure_ascii=False,indent=2))
-          PY
-          file out/* || true
-      - name: Upload artifact
+          python -m py_compile itu_pdf_bundle/download.py
+          python itu_pdf_bundle/download.py
+
+      - name: Summarize generated files
+        shell: bash
+        run: |
+          set -euxo pipefail
+          find out -type f -name '*.pdf' -print0 | xargs -0 -r file
+          printf 'PDF_COUNT=' >> "$GITHUB_STEP_SUMMARY"
+          find out -type f -name '*.pdf' | wc -l >> "$GITHUB_STEP_SUMMARY"
+          du -sh out >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload PDF bundle
         uses: actions/upload-artifact@v4
         with:
-          name: chatgpt-itu-network-test
-          path: out
+          name: itu-r-1200-1400-pdf-bundle
+          path: out/ITU-R建议书1200-1400MHz汇总（PDF已下载）
           if-no-files-found: error
+          retention-days: 7
