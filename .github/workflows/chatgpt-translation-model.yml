@@ -1,0 +1,55 @@
+name: ChatGPT translation model bundle
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/chatgpt-translation-model.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Download Python wheels and translation model
+        shell: bash
+        env:
+          HF_HUB_DISABLE_XET: '1'
+        run: |
+          set -euxo pipefail
+          mkdir -p bundle/wheels bundle/model
+          python -m pip install --upgrade pip
+          python -m pip download --only-binary=:all: --dest bundle/wheels \
+            'transformers==4.48.3' \
+            'sentencepiece==0.2.0' \
+            'sacremoses==0.1.1'
+          python -m pip install 'huggingface_hub==0.28.1'
+          python - <<'PY'
+          from huggingface_hub import snapshot_download
+          snapshot_download(
+              repo_id='Helsinki-NLP/opus-mt-en-zh',
+              local_dir='bundle/model',
+              allow_patterns=[
+                  'config.json', 'generation_config.json', 'metadata.json',
+                  'pytorch_model.bin', 'source.spm', 'target.spm',
+                  'tokenizer_config.json', 'vocab.json', 'README.md'
+              ],
+          )
+          PY
+          du -sh bundle bundle/wheels bundle/model
+          find bundle/model -maxdepth 1 -type f -printf '%f %s\n' | sort
+      - name: Upload offline bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: opus-mt-en-zh-offline-bundle
+          path: bundle
+          retention-days: 2
+          compression-level: 6
