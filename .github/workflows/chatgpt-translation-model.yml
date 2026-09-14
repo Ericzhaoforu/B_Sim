@@ -79,9 +79,9 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m py_compile chatgpt_translation/translate_itu_reports.py
+          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v2.py
           mkdir -p out work
-          python chatgpt_translation/translate_itu_reports.py \
+          python chatgpt_translation/translate_itu_reports_v2.py \
             --report '${{ matrix.report }}' \
             --work-dir work \
             --output-dir out \
@@ -100,7 +100,7 @@ jobs:
           pdftoppm -jpeg -r 72 -jpegopt quality=65,progressive=y "$PDF" qa/pages/page
           python - <<'PY'
           from pathlib import Path
-          from PIL import Image, ImageOps, ImageDraw
+          from PIL import Image, ImageDraw
           import math
           pages = sorted(Path('qa/pages').glob('page-*.jpg'))
           per_sheet = 20
@@ -136,7 +136,7 @@ jobs:
       - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-${{ matrix.report }}-chinese-translation
+          name: itu-r-${{ matrix.report }}-chinese-translation-v2
           path: |
             out/*.docx
             out/*_translation_stats.json
