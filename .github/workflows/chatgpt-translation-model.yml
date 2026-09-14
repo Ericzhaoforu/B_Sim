@@ -1,4 +1,4 @@
-name: ChatGPT ITU-R Chinese translations
+name: ChatGPT ITU-R Chinese translations v3
 
 on:
   push:
@@ -64,29 +64,25 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --no-index --find-links bundle/wheels \
             transformers==4.48.3 sentencepiece==0.2.2 sacremoses==0.1.1
-          python -m pip install \
-            --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install pymupdf==1.26.7 python-docx==1.2.0 requests pillow
-          python - <<'PY'
-          import fitz, torch, transformers, docx
-          print('fitz', fitz.__doc__.splitlines()[0])
-          print('torch', torch.__version__)
-          print('transformers', transformers.__version__)
-          print('python-docx', docx.__version__)
-          PY
 
       - name: Translate report and generate DOCX
         shell: bash
         run: |
           set -euxo pipefail
-          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v2.py
+          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v3.py
           mkdir -p out work
-          python chatgpt_translation/translate_itu_reports_v2.py \
+          python chatgpt_translation/translate_itu_reports_v3.py \
             --report '${{ matrix.report }}' \
             --work-dir work \
             --output-dir out \
             --model bundle/model
           ls -lh out
+          if grep -R -a -E 'ZXQPH|XXXXXXXX' out/*.docx; then
+            echo 'Unexpected placeholder residue detected' >&2
+            exit 1
+          fi
 
       - name: Render DOCX to PDF and prepare visual QA sheets
         shell: bash
@@ -136,7 +132,7 @@ jobs:
       - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-${{ matrix.report }}-chinese-translation-v2
+          name: itu-r-${{ matrix.report }}-chinese-translation-v3
           path: |
             out/*.docx
             out/*_translation_stats.json
