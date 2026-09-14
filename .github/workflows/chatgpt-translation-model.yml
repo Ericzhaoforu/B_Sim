@@ -1,4 +1,4 @@
-name: ChatGPT ITU-R Chinese translations v3
+name: ChatGPT ITU-R Chinese translations v4
 
 on:
   push:
@@ -54,7 +54,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --name opus-mt-en-zh-offline-bundle \
             --dir bundle
-          find bundle -maxdepth 2 -type f -printf '%p %s\n' | head -50
           du -sh bundle
 
       - name: Install Python dependencies
@@ -71,18 +70,53 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v3.py
+          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v4.py
           mkdir -p out work
-          python chatgpt_translation/translate_itu_reports_v3.py \
+          python chatgpt_translation/translate_itu_reports_v4.py \
             --report '${{ matrix.report }}' \
             --work-dir work \
             --output-dir out \
             --model bundle/model
           ls -lh out
-          if grep -R -a -E 'ZXQPH|XXXXXXXX' out/*.docx; then
-            echo 'Unexpected placeholder residue detected' >&2
-            exit 1
-          fi
+
+      - name: Extract text and run content checks
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from xml.etree import ElementTree as ET
+          import re
+
+          ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+          docs=list(Path('out').glob('*.docx'))
+          assert len(docs)==1, docs
+          path=docs[0]
+          with ZipFile(path) as z:
+              root=ET.fromstring(z.read('word/document.xml'))
+          paras=[]
+          for p in root.findall('.//w:p',ns):
+              text=''.join(t.text or '' for t in p.findall('.//w:t',ns)).strip()
+              if text:
+                  paras.append(text)
+          full='\n'.join(paras)
+          bad_patterns={
+              'placeholder': r'ZXQPH|X{8,}',
+              'long_underscores': r'_{6,}',
+              'replacement_character': r'�',
+          }
+          failures={name: re.findall(pattern,full)[:10] for name,pattern in bad_patterns.items() if re.search(pattern,full)}
+          if failures:
+              raise SystemExit(f'Content check failed: {failures}')
+          sample='\n'.join(paras[:260])
+          (Path('out')/(path.stem+'_文本样本.txt')).write_text(sample,encoding='utf-8')
+          (Path('out')/(path.stem+'_全文纯文本.txt')).write_text(full,encoding='utf-8')
+          print('DOCX:', path.name, 'paragraphs=',len(paras),'characters=',len(full))
+          print('----- TRANSLATION SAMPLE START -----')
+          print('\n'.join(paras[:110]))
+          print('----- TRANSLATION SAMPLE END -----')
+          PY
 
       - name: Render DOCX to PDF and prepare visual QA sheets
         shell: bash
@@ -132,10 +166,12 @@ jobs:
       - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-${{ matrix.report }}-chinese-translation-v3
+          name: itu-r-${{ matrix.report }}-chinese-translation-v4
           path: |
             out/*.docx
             out/*_translation_stats.json
+            out/*_文本样本.txt
+            out/*_全文纯文本.txt
             rendered/*.pdf
             qa/pdfinfo.txt
             qa/sheets/*.jpg
