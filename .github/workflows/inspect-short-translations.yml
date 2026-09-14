@@ -1,0 +1,42 @@
+name: Inspect short translation samples
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/inspect-short-translations.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and print text samples
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p retrieved
+          gh run download 34801662733 --repo "$GITHUB_REPOSITORY" --pattern 'itu-r-SA.2425-chinese-translation-v3' --dir retrieved
+          gh run download 34801662733 --repo "$GITHUB_REPOSITORY" --pattern 'itu-r-SA.2426-chinese-translation-v3' --dir retrieved
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from xml.etree import ElementTree as ET
+          ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+          for path in sorted(Path('retrieved').rglob('*.docx')):
+              with ZipFile(path) as z:
+                  root=ET.fromstring(z.read('word/document.xml'))
+              paras=[]
+              for p in root.findall('.//w:p',ns):
+                  t=''.join(x.text or '' for x in p.findall('.//w:t',ns)).strip()
+                  if t: paras.append(t)
+              print('\n'+'='*80+'\n'+path.name+'\n'+'='*80)
+              print('\n'.join(paras[:160]))
+          PY
