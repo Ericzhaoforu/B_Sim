@@ -1,4 +1,4 @@
-name: ChatGPT ITU-R Chinese translations v5
+name: ChatGPT ITU-R Chinese translations v6
 
 on:
   push:
@@ -69,9 +69,13 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m py_compile chatgpt_translation/translate_itu_reports.py chatgpt_translation/translate_itu_reports_v5.py
+          python -m py_compile \
+            chatgpt_translation/translate_itu_reports.py \
+            chatgpt_translation/translate_itu_reports_v4.py \
+            chatgpt_translation/translate_itu_reports_v5.py \
+            chatgpt_translation/translate_itu_reports_v6.py
           mkdir -p out work
-          python chatgpt_translation/translate_itu_reports_v5.py \
+          python chatgpt_translation/translate_itu_reports_v6.py \
             --report '${{ matrix.report }}' \
             --work-dir work \
             --output-dir out \
@@ -102,7 +106,7 @@ jobs:
                   paras.append(text)
           full='\n'.join(paras)
           bad_patterns={
-              'placeholder': r'ZXQPH|ZZUNIT\d{4,}|X{8,}',
+              'placeholder': r'ZXQPH|ZZUNIT\d{4,}|ZZT\d{6}X\d{4}ZZ|X{8,}',
               'long_underscores': r'_{6,}',
               'replacement_character': r'�',
           }
@@ -116,12 +120,12 @@ jobs:
                       break
           if failures:
               raise SystemExit(f'Content check failed: {failures}')
-          sample='\n'.join(paras[:320])
+          sample='\n'.join(paras[:360])
           (Path('out')/(path.stem+'_文本样本.txt')).write_text(sample,encoding='utf-8')
           (Path('out')/(path.stem+'_全文纯文本.txt')).write_text(full,encoding='utf-8')
           print('DOCX:', path.name, 'paragraphs=',len(paras),'characters=',len(full))
           print('----- TRANSLATION SAMPLE START -----')
-          print('\n'.join(paras[:150]))
+          print('\n'.join(paras[:180]))
           print('----- TRANSLATION SAMPLE END -----')
           PY
 
@@ -173,7 +177,7 @@ jobs:
       - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-${{ matrix.report }}-chinese-translation-v5
+          name: itu-r-${{ matrix.report }}-chinese-translation-v6
           path: |
             out/*.docx
             out/*_translation_stats.json
