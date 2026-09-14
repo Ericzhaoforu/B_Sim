@@ -1,4 +1,4 @@
-name: ChatGPT ITU-R Chinese translations v6
+name: ChatGPT ITU-R Chinese translations v7
 
 on:
   push:
@@ -73,9 +73,10 @@ jobs:
             chatgpt_translation/translate_itu_reports.py \
             chatgpt_translation/translate_itu_reports_v4.py \
             chatgpt_translation/translate_itu_reports_v5.py \
-            chatgpt_translation/translate_itu_reports_v6.py
+            chatgpt_translation/translate_itu_reports_v6.py \
+            chatgpt_translation/translate_itu_reports_v7.py
           mkdir -p out work
-          python chatgpt_translation/translate_itu_reports_v6.py \
+          python chatgpt_translation/translate_itu_reports_v7.py \
             --report '${{ matrix.report }}' \
             --work-dir work \
             --output-dir out \
@@ -120,12 +121,12 @@ jobs:
                       break
           if failures:
               raise SystemExit(f'Content check failed: {failures}')
-          sample='\n'.join(paras[:360])
+          sample='\n'.join(paras[:400])
           (Path('out')/(path.stem+'_文本样本.txt')).write_text(sample,encoding='utf-8')
           (Path('out')/(path.stem+'_全文纯文本.txt')).write_text(full,encoding='utf-8')
           print('DOCX:', path.name, 'paragraphs=',len(paras),'characters=',len(full))
           print('----- TRANSLATION SAMPLE START -----')
-          print('\n'.join(paras[:180]))
+          print('\n'.join(paras[:220]))
           print('----- TRANSLATION SAMPLE END -----')
           PY
 
@@ -177,7 +178,7 @@ jobs:
       - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: itu-r-${{ matrix.report }}-chinese-translation-v6
+          name: itu-r-${{ matrix.report }}-chinese-translation-v7
           path: |
             out/*.docx
             out/*_translation_stats.json
