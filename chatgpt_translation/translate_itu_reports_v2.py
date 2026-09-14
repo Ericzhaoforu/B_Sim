@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from chatgpt_translation import translate_itu_reports as pipeline
+import translate_itu_reports as pipeline
 
 
 def fixed_protect_glossary(text: str) -> tuple[str, dict[str, str]]:
@@ -33,7 +33,6 @@ def fixed_protect_glossary(text: str) -> tuple[str, dict[str, str]]:
         r"\bITU-R\s+[A-Z]+\.\d+(?:-\d+)?\b",
         r"\bRR\s+No\.\s*\d+(?:\.\d+)*\b",
         r"\bWRC-\d{2}\b",
-        # Do not re-protect placeholders that were inserted for glossary terms.
         r"\b(?!ZXQPH\d{4}QXZ\b)[A-Z][A-Z0-9/()-]{1,14}\b",
     ]
     for expression in patterns:
