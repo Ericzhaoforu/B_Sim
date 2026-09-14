@@ -1,4 +1,4 @@
-name: ChatGPT translation model bundle
+name: ChatGPT ITU-R Chinese translations
 
 on:
   push:
@@ -6,50 +6,143 @@ on:
       - chatgpt-translation-model-20260914
     paths:
       - '.github/workflows/chatgpt-translation-model.yml'
+      - 'chatgpt_translation/**'
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  bundle:
+  translate:
+    strategy:
+      fail-fast: false
+      matrix:
+        report: ['SA.2425', 'SA.2426', 'SA.2427']
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 350
+    env:
+      HF_HUB_DISABLE_XET: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+      OMP_NUM_THREADS: '4'
+      MKL_NUM_THREADS: '4'
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out temporary branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Download Python wheels and translation model
+
+      - name: Install system packages
         shell: bash
-        env:
-          HF_HUB_DISABLE_XET: '1'
         run: |
           set -euxo pipefail
-          mkdir -p bundle/wheels bundle/model
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libreoffice-writer libreoffice-core poppler-utils fonts-noto-cjk
+          fc-cache -f
+
+      - name: Retrieve offline translation model bundle
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf bundle
+          mkdir -p bundle
+          gh run download 34769744223 \
+            --repo "$GITHUB_REPOSITORY" \
+            --name opus-mt-en-zh-offline-bundle \
+            --dir bundle
+          find bundle -maxdepth 2 -type f -printf '%p %s\n' | head -50
+          du -sh bundle
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
           python -m pip install --upgrade pip
-          python -m pip download --only-binary=:all: --dest bundle/wheels \
-            'transformers==4.48.3' \
-            'sentencepiece==0.2.2' \
-            'sacremoses==0.1.1'
-          python -m pip install 'huggingface_hub==0.28.1'
+          python -m pip install --no-index --find-links bundle/wheels \
+            transformers==4.48.3 sentencepiece==0.2.2 sacremoses==0.1.1
+          python -m pip install \
+            --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install pymupdf==1.26.7 python-docx==1.2.0 requests pillow
           python - <<'PY'
-          from huggingface_hub import snapshot_download
-          snapshot_download(
-              repo_id='Helsinki-NLP/opus-mt-en-zh',
-              local_dir='bundle/model',
-              allow_patterns=[
-                  'config.json', 'generation_config.json', 'metadata.json',
-                  '*.bin', '*.safetensors', 'source.spm', 'target.spm',
-                  'tokenizer_config.json', 'vocab.json', 'README.md'
-              ],
-          )
+          import fitz, torch, transformers, docx
+          print('fitz', fitz.__doc__.splitlines()[0])
+          print('torch', torch.__version__)
+          print('transformers', transformers.__version__)
+          print('python-docx', docx.__version__)
           PY
-          du -sh bundle bundle/wheels bundle/model
-          find bundle/model -maxdepth 1 -type f -printf '%f %s\n' | sort
-      - name: Upload offline bundle
+
+      - name: Translate report and generate DOCX
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m py_compile chatgpt_translation/translate_itu_reports.py
+          mkdir -p out work
+          python chatgpt_translation/translate_itu_reports.py \
+            --report '${{ matrix.report }}' \
+            --work-dir work \
+            --output-dir out \
+            --model bundle/model
+          ls -lh out
+
+      - name: Render DOCX to PDF and prepare visual QA sheets
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p rendered qa/pages qa/sheets
+          DOCX=$(find out -maxdepth 1 -name '*.docx' -print -quit)
+          libreoffice --headless --convert-to pdf --outdir rendered "$DOCX"
+          PDF=$(find rendered -maxdepth 1 -name '*.pdf' -print -quit)
+          pdfinfo "$PDF" | tee qa/pdfinfo.txt
+          pdftoppm -jpeg -r 72 -jpegopt quality=65,progressive=y "$PDF" qa/pages/page
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps, ImageDraw
+          import math
+          pages = sorted(Path('qa/pages').glob('page-*.jpg'))
+          per_sheet = 20
+          cols, rows = 4, 5
+          thumb_w, thumb_h = 280, 396
+          margin = 18
+          for sheet_index in range(math.ceil(len(pages) / per_sheet)):
+              group = pages[sheet_index*per_sheet:(sheet_index+1)*per_sheet]
+              canvas = Image.new('RGB', (cols*(thumb_w+margin)+margin, rows*(thumb_h+margin)+margin), 'white')
+              draw = ImageDraw.Draw(canvas)
+              for i, path in enumerate(group):
+                  image = Image.open(path).convert('RGB')
+                  image.thumbnail((thumb_w, thumb_h))
+                  x = margin + (i % cols)*(thumb_w+margin) + (thumb_w-image.width)//2
+                  y = margin + (i // cols)*(thumb_h+margin) + (thumb_h-image.height)//2
+                  canvas.paste(image, (x, y))
+                  draw.rectangle((x-1, y-1, x+image.width, y+image.height), outline='gray', width=1)
+                  draw.text((x+4, y+4), str(sheet_index*per_sheet+i+1), fill='red')
+              out = Path('qa/sheets') / f'sheet-{sheet_index+1:03d}.jpg'
+              canvas.save(out, quality=82, optimize=True)
+          print('Rendered pages:', len(pages), 'QA sheets:', len(list(Path('qa/sheets').glob('*.jpg'))))
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          docs=list(Path('out').glob('*.docx'))
+          assert len(docs)==1, docs
+          with zipfile.ZipFile(docs[0]) as z:
+              assert 'word/document.xml' in z.namelist()
+          print('DOCX ZIP integrity: PASS', docs[0], docs[0].stat().st_size)
+          PY
+
+      - name: Upload translated report and QA files
         uses: actions/upload-artifact@v4
         with:
-          name: opus-mt-en-zh-offline-bundle
-          path: bundle
-          retention-days: 2
+          name: itu-r-${{ matrix.report }}-chinese-translation
+          path: |
+            out/*.docx
+            out/*_translation_stats.json
+            rendered/*.pdf
+            qa/pdfinfo.txt
+            qa/sheets/*.jpg
+          if-no-files-found: error
+          retention-days: 7
           compression-level: 6
