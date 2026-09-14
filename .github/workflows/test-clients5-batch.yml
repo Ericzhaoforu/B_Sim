@@ -1,0 +1,46 @@
+name: Test clients5 batch translation
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/test-clients5-batch.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test batch markers and repeated calls
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.parse, urllib.request, time
+          units=[
+              'This Report responds to invites 1 in Resolution 659 (WRC-15) described below.',
+              'Technical and operational characteristics of non-GSO satellites with short duration missions.',
+              'Most non-GSO satellites with short duration missions are launched into low Earth orbit.',
+              'The following tables are applicable only to individual spacecraft.',
+              'The necessary bandwidth is less than or equal to 25 kHz.',
+          ]
+          markers=[f'ZZUNIT{i:04d}ZZ' for i in range(len(units)-1)]
+          text='\n'.join(u + ('\n'+markers[i] if i < len(markers) else '') for i,u in enumerate(units))
+          def tr(text):
+              q=urllib.parse.quote(text,safe='')
+              url='https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=zh-CN&q='+q
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36'})
+              with urllib.request.urlopen(req,timeout=45) as r:
+                  return json.loads(r.read().decode('utf-8'))[0]
+          out=tr(text)
+          print('SOURCE:',repr(text))
+          print('OUTPUT:',repr(out))
+          for marker in markers:
+              print(marker, marker in out)
+          for i in range(20):
+              o=tr(f'Test translation request number {i}. The satellite is above the minimum elevation angle.')
+              print(i,o)
+              time.sleep(0.2)
+          PY
