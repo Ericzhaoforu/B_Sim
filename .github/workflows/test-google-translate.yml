@@ -1,0 +1,38 @@
+name: Test public translation endpoint
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/test-google-translate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test translation calls
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.parse, urllib.request
+          samples = [
+            'This Report responds to invites 1 in Resolution 659 (WRC-15) described below and contains the technical characteristics for telemetry, tracking and command in the space operations service for non-GSO satellites with short duration missions.',
+            'The value for necessary bandwidth is based on an analysis of currently filed systems that could be regarded as short duration missions.',
+            'A dynamic simulation environment was developed taking into account the parameters listed in Table 1 as well as the RF characteristics agreed in Report ITU-R SA.2426-0.',
+            'FIRST UNIT\n<<<UNIT0001>>>\nSECOND UNIT\n<<<UNIT0002>>>\nTHIRD UNIT',
+          ]
+          for text in samples:
+              params=urllib.parse.urlencode({'client':'gtx','sl':'en','tl':'zh-CN','dt':'t','q':text})
+              url='https://translate.googleapis.com/translate_a/single?'+params
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  data=json.loads(r.read().decode('utf-8'))
+              translated=''.join(part[0] for part in data[0] if part[0])
+              print('EN:',text)
+              print('ZH:',translated)
+              print('-'*80)
+          PY
