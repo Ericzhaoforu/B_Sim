@@ -1,0 +1,44 @@
+name: Test alternate translation endpoints
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/test-translation-endpoints.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test endpoints
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.parse, urllib.request, urllib.error
+          text='This Report responds to invites 1 in Resolution 659 (WRC-15) described below and contains the technical characteristics for telemetry, tracking and command in the space operations service for non-GSO satellites with short duration missions.'
+          def call(name, req, parse):
+              print('\n###',name)
+              try:
+                  with urllib.request.urlopen(req,timeout=45) as r:
+                      raw=r.read().decode('utf-8','replace')
+                      print('status',r.status,'raw',raw[:500])
+                      print('parsed',parse(raw))
+              except Exception as e:
+                  print('ERROR',repr(e))
+          q=urllib.parse.quote(text,safe='')
+          u='https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=zh-CN&q='+q
+          call('clients5-google', urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}), lambda raw: json.loads(raw))
+          u='https://translate.google.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q='+q
+          call('translate-google', urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}), lambda raw: json.loads(raw))
+          for base in ['https://translate.argosopentech.com','https://libretranslate.de','https://lt.vern.cc']:
+              data=json.dumps({'q':text,'source':'en','target':'zh','format':'text'}).encode()
+              req=urllib.request.Request(base+'/translate',data=data,headers={'Content-Type':'application/json','User-Agent':'Mozilla/5.0'})
+              call(base,req,lambda raw:json.loads(raw))
+          for base in ['https://lingva.ml','https://lingva.lunar.icu','https://translate.plausibility.cloud']:
+              u=base+'/api/v1/en/zh/'+q
+              call(base,urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),lambda raw:json.loads(raw))
+          PY
