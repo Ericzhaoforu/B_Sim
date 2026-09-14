@@ -1,0 +1,90 @@
+name: Publish ITU-R Chinese translation documents
+
+on:
+  push:
+    branches:
+      - chatgpt-translation-model-20260914
+    paths:
+      - '.github/workflows/publish-translations.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_RUN: '34801662733'
+      OUTPUT_BRANCH: 'chatgpt-itu-r-chinese-translations-20260914'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for translation run
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 180); do
+            status=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json status --jq .status)
+            conclusion=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion // ""')
+            echo "status=$status conclusion=$conclusion"
+            if [ "$status" = completed ]; then
+              test "$conclusion" = success
+              exit 0
+            fi
+            sleep 30
+          done
+          echo 'Timed out waiting for translation run' >&2
+          exit 1
+      - name: Download translation artifacts
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf retrieved publish
+          mkdir -p retrieved publish
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --pattern 'itu-r-*-chinese-translation-v3' --dir retrieved
+          find retrieved -type f -maxdepth 4 -printf '%p %s\n' | sort
+          find retrieved -type f -name '*.docx' -exec cp {} publish/ \;
+          find retrieved -type f -name '*.pdf' -exec cp {} publish/ \;
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from xml.etree import ElementTree as ET
+          import re
+          ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+          for path in sorted(Path('publish').glob('*.docx')):
+              with ZipFile(path) as z:
+                  root=ET.fromstring(z.read('word/document.xml'))
+              paras=[]
+              for p in root.findall('.//w:p',ns):
+                  text=''.join(t.text or '' for t in p.findall('.//w:t',ns)).strip()
+                  if text:
+                      paras.append(text)
+              sample='\n'.join(paras[:220])
+              (Path('publish')/(path.stem+'_文本样本.txt')).write_text(sample,encoding='utf-8')
+              full='\n'.join(paras)
+              bad=re.findall(r'ZXQPH|X{8,}',full)
+              if bad:
+                  raise SystemExit(f'placeholder residue in {path}: {bad[:5]}')
+              print(path.name, 'paragraphs', len(paras), 'chars', len(full))
+          PY
+          sha256sum publish/* > publish/SHA256SUMS.txt
+      - name: Push generated documents to output branch
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name 'ChatGPT Translation Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git checkout --orphan "$OUTPUT_BRANCH"
+          git rm -rf . || true
+          mkdir -p documents
+          cp publish/* documents/
+          cat > README.md <<'EOF'
+          # ITU-R SA.2425 / SA.2426 / SA.2427 中文参考译本
+
+          本分支仅用于交付用户请求的三个中文参考译本。译文采用机器辅助翻译并统一部分ITU术语，不是ITU官方中文文本；法规、公式、数值和最终工程结论应以英文原文为准。
+          EOF
+          git add README.md documents
+          git commit -m 'Publish three ITU-R Chinese reference translations'
+          git push --force origin "$OUTPUT_BRANCH"
