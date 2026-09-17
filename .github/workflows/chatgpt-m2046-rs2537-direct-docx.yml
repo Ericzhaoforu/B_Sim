@@ -1,0 +1,43 @@
+name: Package direct M.2046 RS.2537 DOCX
+
+on:
+  push:
+    branches:
+      - chatgpt-m2046-rs2537-summary-20260917
+    paths:
+      - '.github/workflows/chatgpt-m2046-rs2537-direct-docx.yml'
+      - 'chatgpt_docs/generate_m2046_rs2537_summary.py'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependency and generate DOCX
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install python-docx==1.2.0
+          python chatgpt_docs/generate_m2046_rs2537_summary.py
+          DOCX=$(find out -maxdepth 1 -name '*.docx' -print -quit)
+          mkdir -p docx_flat
+          unzip -q "$DOCX" -d docx_flat
+          test -f 'docx_flat/[Content_Types].xml'
+          test -f docx_flat/word/document.xml
+          find docx_flat -type f | sort | head
+      - name: Upload DOCX package contents
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2046-rs2537-direct-docx
+          path: docx_flat/**
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+          compression-level: 6
