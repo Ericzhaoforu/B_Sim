@@ -1,0 +1,132 @@
+name: Build M.2046 and RS.2537 Chinese report
+
+on:
+  push:
+    branches:
+      - chatgpt-m2046-rs2537-summary-20260917
+    paths:
+      - '.github/workflows/chatgpt-m2046-rs2537-docx.yml'
+      - 'chatgpt_docs/generate_m2046_rs2537_summary.py'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout temporary branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install document tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libreoffice-writer libreoffice-core poppler-utils fonts-noto-cjk python3-lxml
+          python -m pip install --upgrade pip
+          python -m pip install python-docx==1.2.0 pillow
+          fc-cache -f
+
+      - name: Generate Word document
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m py_compile chatgpt_docs/generate_m2046_rs2537_summary.py
+          python chatgpt_docs/generate_m2046_rs2537_summary.py
+          ls -lh out
+
+      - name: Validate DOCX package and content
+        shell: bash
+        run: |
+          set -euxo pipefail
+          DOCX=$(find out -maxdepth 1 -name '*.docx' -print -quit)
+          test -n "$DOCX"
+          test $(stat -c%s "$DOCX") -gt 50000
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile, re
+          docs=list(Path('out').glob('*.docx'))
+          assert len(docs)==1, docs
+          p=docs[0]
+          with zipfile.ZipFile(p) as z:
+              names=set(z.namelist())
+              assert 'word/document.xml' in names
+              xml=z.read('word/document.xml').decode('utf-8')
+              for phrase in ['ITU-R M.2046-0', 'RS.2537-0', 'ARGOS4', 'PDC', 'SAR5']:
+                  assert phrase in xml, phrase
+              assert len(re.findall(r'<w:p[ >]', xml)) > 150
+          print('DOCX integrity and content checks: PASS', p, p.stat().st_size)
+          PY
+
+      - name: Render to PDF for visual QA
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p rendered qa/pages qa/sheets
+          DOCX=$(find out -maxdepth 1 -name '*.docx' -print -quit)
+          libreoffice --headless --convert-to pdf --outdir rendered "$DOCX"
+          PDF=$(find rendered -maxdepth 1 -name '*.pdf' -print -quit)
+          pdfinfo "$PDF" | tee qa/pdfinfo.txt
+          PAGES=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
+          test "$PAGES" -ge 15
+          pdftotext "$PDF" qa/rendered_text.txt
+          grep -q 'M.2046' qa/rendered_text.txt
+          grep -q 'RS.2537' qa/rendered_text.txt
+          pdftoppm -jpeg -r 55 -jpegopt quality=60,progressive=y "$PDF" qa/pages/page
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          import math
+          pages=sorted(Path('qa/pages').glob('page-*.jpg'))
+          cols, rows, per=4,5,20
+          tw, th, m=220,311,14
+          for si in range(math.ceil(len(pages)/per)):
+              group=pages[si*per:(si+1)*per]
+              canvas=Image.new('RGB',(cols*(tw+m)+m,rows*(th+m)+m),'white')
+              d=ImageDraw.Draw(canvas)
+              for i,p in enumerate(group):
+                  im=Image.open(p).convert('RGB')
+                  im.thumbnail((tw,th))
+                  x=m+(i%cols)*(tw+m)+(tw-im.width)//2
+                  y=m+(i//cols)*(th+m)+(th-im.height)//2
+                  canvas.paste(im,(x,y))
+                  d.rectangle((x-1,y-1,x+im.width,y+im.height),outline='gray')
+                  d.text((x+3,y+3),str(si*per+i+1),fill='red')
+              canvas.save(Path('qa/sheets')/f'sheet-{si+1:02d}.jpg',quality=80,optimize=True)
+          print('Rendered pages:',len(pages))
+          PY
+
+      - name: Commit generated files to temporary branch
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p generated
+          cp out/*.docx generated/
+          cp rendered/*.pdf generated/
+          git config user.name 'OpenAI ChatGPT'
+          git config user.email 'chatgpt-actions@users.noreply.github.com'
+          git add generated
+          git commit -m 'Add generated M.2046 and RS.2537 summary documents' || true
+          git push origin HEAD:chatgpt-m2046-rs2537-summary-20260917
+
+      - name: Upload report bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: itu-r-m2046-rs2537-detailed-summary
+          path: |
+            out/*.docx
+            rendered/*.pdf
+            qa/pdfinfo.txt
+            qa/sheets/*.jpg
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
