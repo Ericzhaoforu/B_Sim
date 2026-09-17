@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euxo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends poppler-utils
+          sudo apt-get install -y --no-install-recommends poppler-utils poppler-data
           python -m pip install --upgrade pip
           python -m pip install reportlab==4.4.4
 
@@ -50,12 +50,12 @@ jobs:
           PDF='generated/ITU-R_SA2425_SA2426_SA2427_Chinese_Summary.pdf'
           test -s "$PDF"
           pdfinfo "$PDF" | tee generated/pdfinfo.txt
+          PAGES=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
+          test "$PAGES" -ge 8
           pdftotext -layout "$PDF" generated/extracted.txt
           grep -q 'SA.2425' generated/extracted.txt
           grep -q 'SA.2426' generated/extracted.txt
           grep -q 'SA.2427' generated/extracted.txt
-          PAGES=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
-          test "$PAGES" -ge 8
           mkdir -p generated/qa
           pdftoppm -f 1 -singlefile -png -r 100 "$PDF" generated/qa/cover
           MID=$(( (PAGES + 1) / 2 ))
