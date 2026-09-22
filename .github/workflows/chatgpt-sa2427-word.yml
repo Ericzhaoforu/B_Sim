@@ -1,0 +1,90 @@
+name: Generate SA.2427 Word export
+
+on:
+  push:
+    branches:
+      - chatgpt-sa2427-word-20260922
+    paths:
+      - 'chatgpt_exports/create_sa2427_locator_docx.py'
+      - '.github/workflows/chatgpt-sa2427-word.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install document tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install python-docx==1.2.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer libreoffice-core fonts-noto-cjk poppler-utils
+          fc-cache -f
+
+      - name: Generate and validate Word document
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python chatgpt_exports/create_sa2427_locator_docx.py
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          from docx import Document
+          p=Path('generated/ITU-R_SA.2427-0原文页码定位与分析说明.docx')
+          assert p.exists() and p.stat().st_size > 30000
+          with zipfile.ZipFile(p) as z:
+              assert 'word/document.xml' in z.namelist()
+              assert 'word/styles.xml' in z.namelist()
+          d=Document(p)
+          assert len(d.paragraphs) > 40
+          assert len(d.tables) >= 8
+          print('DOCX validation PASS', p.stat().st_size, len(d.paragraphs), len(d.tables))
+          PY
+
+      - name: Render for layout validation
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p rendered
+          libreoffice --headless --convert-to pdf --outdir rendered generated/*.docx
+          pdfinfo rendered/*.pdf | tee rendered/pdfinfo.txt
+
+      - name: Commit generated Word document
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name 'OpenAI Artifact Bot'
+          git config user.email '70418914+Ericzhaoforu@users.noreply.github.com'
+          git add generated/*.docx
+          if git diff --cached --quiet; then
+            echo 'No generated changes to commit'
+          else
+            git commit -m 'Add SA.2427 Word export'
+            git push origin HEAD:chatgpt-sa2427-word-20260922
+          fi
+
+      - name: Upload document and validation output
+        uses: actions/upload-artifact@v4
+        with:
+          name: itu-r-sa2427-word-export
+          path: |
+            generated/*.docx
+            rendered/*.pdf
+            rendered/pdfinfo.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
