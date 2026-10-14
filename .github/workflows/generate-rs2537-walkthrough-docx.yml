@@ -1,0 +1,90 @@
+name: Generate RS2537 walkthrough Word document
+
+on:
+  push:
+    branches:
+      - chatgpt-rs2537-walkthrough-docx-20261014
+    paths:
+      - 'scripts/generate_rs2537_walkthrough_docx.py'
+      - '.github/workflows/generate-rs2537-walkthrough-docx.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install document dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install python-docx
+
+      - name: Generate Word document
+        run: |
+          python scripts/generate_rs2537_walkthrough_docx.py
+
+      - name: Validate DOCX package and content
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from docx import Document
+
+          path = Path('generated/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.docx')
+          assert path.exists() and path.stat().st_size > 30000, path
+          with ZipFile(path) as z:
+              assert z.testzip() is None
+              assert 'word/document.xml' in z.namelist()
+          doc = Document(path)
+          assert len(doc.paragraphs) > 100, len(doc.paragraphs)
+          assert len(doc.tables) >= 10, len(doc.tables)
+          text = '\n'.join(p.text for p in doc.paragraphs)
+          for required in ['0.387 dB', '4.361%', '−79.48 dBW', '8.35 MHz', '0.2 dB']:
+              assert required in text, required
+          print({'bytes': path.stat().st_size, 'paragraphs': len(doc.paragraphs), 'tables': len(doc.tables)})
+          PY
+
+      - name: Render with LibreOffice for layout QA
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-writer poppler-utils
+          mkdir -p generated/qa
+          libreoffice --headless --convert-to pdf --outdir generated/qa generated/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.docx
+          pdfinfo generated/qa/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.pdf | tee generated/qa/pdfinfo.txt
+          test "$(pdfinfo generated/qa/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.pdf | awk '/^Pages:/ {print $2}')" -ge 10
+
+      - name: Commit generated Word document
+        run: |
+          git config user.name 'OpenAI Artifact Builder'
+          git config user.email 'artifact-builder@users.noreply.github.com'
+          git add generated/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.docx
+          if git diff --cached --quiet; then
+            echo 'No generated changes to commit.'
+          else
+            git commit -m 'Add RS.2537-0 detailed calculation walkthrough DOCX [skip ci]'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Upload document and QA PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ITU-R-RS2537-detailed-calculation-walkthrough-CN
+          path: |
+            generated/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.docx
+            generated/qa/ITU-R_RS.2537-0_detailed_calculation_walkthrough_CN.pdf
+            generated/qa/pdfinfo.txt
+          retention-days: 7
+          compression-level: 6
