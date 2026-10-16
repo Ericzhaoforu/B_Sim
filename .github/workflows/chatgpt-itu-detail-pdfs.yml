@@ -1,0 +1,104 @@
+name: ITU-R detailed analysis reference pack
+
+on:
+  push:
+    branches:
+      - chatgpt-itu-detail-pdfs-20261016
+    paths:
+      - '.github/workflows/chatgpt-itu-detail-pdfs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download and validate official ITU-R PDFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+          OUT='ITU-R详细分析参考文献包'
+          mkdir -p "$OUT/PDF"
+
+          cat > /tmp/items.tsv <<'EOF'
+          R-REC-RS.2165-0-202312-I!!PDF-C.pdf|https://www.itu.int/dms_pubrec/itu-r/rec/rs/R-REC-RS.2165-0-202312-I%21%21PDF-C.pdf|https://www.itu.int/rec/R-REC-RS.2165-0-202312-I/zh|中文|初评超限后的详细分析触发条件、双方主管部门参与及多星累积影响
+          R-REP-M.2220-1-2021-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-M.2220-1-2021-PDF-E.pdf|https://www.itu.int/pub/R-REP-M.2220-1-2021|英文|计算强脉冲PDC、弱脉冲RI及多源聚合参数
+          R-REP-M.2305-1-2026-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-M.2305-1-2026-PDF-E.pdf|https://www.itu.int/pub/R-REP-M.2305-1-2026|英文|轨道、波束和多星同时照射的动态统计分析
+          R-REP-M.2496-2021-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-M.2496-2021-PDF-E.pdf|https://www.itu.int/pub/R-REP-M.2496-2021|英文|RNSS接收机饱和门限、恢复时间等参数的试验确定方法
+          R-REP-RS.2311-2014-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-RS.2311-2014-PDF-E.pdf|https://www.itu.int/pub/R-REP-RS.2311-2014|英文|SAR/散射计波形射频硬注入测量与缓解方法
+          R-REP-RS.2566-2026-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-RS.2566-2026-PDF-E.pdf|https://www.itu.int/pub/R-REP-RS.2566-2026|英文|多个星载SAR聚合干扰的最新计算与解决实例
+          R-REC-RS.1347-0-199802-I!!PDF-E.pdf|https://www.itu.int/dms_pubrec/itu-r/rec/rs/R-REC-RS.1347-0-199802-I%21%21PDF-E.pdf|https://www.itu.int/rec/R-REC-RS.1347-0-199802-I/en|英文|从前端限幅、AGC/ADC、跟踪环到轨道统计和注入试验的早期完整案例
+          R-REC-M.2030-0-201212-I!!PDF-C.pdf|https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.2030-0-201212-I%21%21PDF-C.pdf|https://www.itu.int/rec/R-REC-M.2030-0-201212-I/zh|中文|RNSS脉冲干扰初步评估的基础公式、参数和允许劣化比
+          R-REP-RS.2537-2023-PDF-E.pdf|https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-RS.2537-2023-PDF-E.pdf|https://www.itu.int/pub/R-REP-RS.2537-2023|英文|M.2030方法用于1215-1300 MHz星载SAR场景的初评实例
+          EOF
+
+          printf '\xEF\xBB\xBF文件名,语言,页数,字节数,SHA-256,官方页面,用途\n' > "$OUT/下载与校验清单.csv"
+
+          while IFS='|' read -r filename url page language purpose; do
+            [ -z "$filename" ] && continue
+            dest="$OUT/PDF/$filename"
+            echo "Downloading $filename"
+            curl -fL --retry 6 --retry-delay 3 --retry-all-errors \
+              --connect-timeout 30 --max-time 300 \
+              -A 'Mozilla/5.0 (compatible; ITU-R-document-fetch/1.0)' \
+              "$url" -o "$dest"
+
+            if [ "$(head -c 5 "$dest")" != '%PDF-' ]; then
+              echo "Invalid PDF header: $filename" >&2
+              exit 1
+            fi
+
+            pages=$(pdfinfo "$dest" | awk -F: '/^Pages:/ {gsub(/ /,"",$2); print $2}')
+            bytes=$(stat -c '%s' "$dest")
+            sha=$(sha256sum "$dest" | awk '{print $1}')
+            safe_purpose=${purpose//\"/\"\"}
+            printf '"%s","%s",%s,%s,"%s","%s","%s"\n' \
+              "$filename" "$language" "$pages" "$bytes" "$sha" "$page" "$safe_purpose" \
+              >> "$OUT/下载与校验清单.csv"
+          done < /tmp/items.tsv
+
+          cat > "$OUT/README_使用说明.txt" <<'EOF'
+          ITU-R“初评超限后详细分析”参考文献包
+          =====================================
+
+          本资料包共包含9份ITU官方PDF：
+
+          一、详细分析主线
+          1. RS.2165-0：规定初评超限后何时进入详细分析、由哪些主管部门参与、需要使用哪些真实参数。
+          2. M.2220-1：把真实脉冲源转换为M.2030所需的PDC、RI及聚合参数。
+          3. M.2305-1：进行轨道、波束、多星同时照射事件的动态仿真与时间统计。
+          4. M.2496-0：通过实测确定接收机饱和门限、恢复时间等关键参数。
+          5. RS.2311-0：给出SAR/散射计波形对RNSS接收机的射频硬注入试验。
+          6. RS.2566-0：给出多个SAR聚合后超限及解决思路的最新实例。
+          7. RS.1347-0：提供从前端、AGC/ADC、跟踪环、轨道统计到注入测试的早期详细案例。
+
+          二、基础与初评文件
+          8. M.2030-0（中文）：脉冲干扰评估基础公式和允许劣化比。
+          9. RS.2537-0：M.2030方法用于1215-1300 MHz星载SAR—RNSS场景的初步评估实例。
+
+          推荐阅读顺序：
+          M.2030 → RS.2537 → RS.2165 → M.2220 → M.2305 → M.2496 → RS.2311 → RS.2566；
+          RS.1347可作为接收机内部机理与早期实测案例补充阅读。
+
+          “下载与校验清单.csv”包含每份PDF的页数、文件大小、SHA-256校验值、官方页面和用途说明。
+          所有PDF均从ITU官方网站下载，并通过PDF文件头和pdfinfo结构检查。
+          EOF
+
+          find "$OUT/PDF" -maxdepth 1 -type f -name '*.pdf' -printf '%f\n' | sort
+          echo "PDF count: $(find "$OUT/PDF" -maxdepth 1 -type f -name '*.pdf' | wc -l)"
+
+      - name: Upload reference pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: ITU-R-detailed-analysis-reference-pack
+          path: ITU-R详细分析参考文献包
+          retention-days: 3
+          compression-level: 6
