@@ -1,0 +1,244 @@
+[
+  {
+    "id": "P01",
+    "group": "01_直接相关研究",
+    "title": "Air Traffic Radar Interference Event in the Galileo E6 Band: Detection, Analysis and Mitigation",
+    "title_zh": "Galileo E6频段空管雷达干扰事件：检测、分析与缓解",
+    "authors": "Javier Arribas; Antonio Ramos de Torres; Carles Fernández-Prades; Jordi Vilà-Valls; Pau Closas",
+    "year": "2017",
+    "venue": "ION GNSS+ 2017, pp. 1204–1228",
+    "doi": "10.33012/2017.15301",
+    "page_url": "https://zenodo.org/records/1037280",
+    "alternate_page": "https://www.ion.org/publications/abstract.cfm?articleID=15301",
+    "pdf_urls": [
+      "https://zenodo.org/records/1037280/files/Air%20Traffic%20Radar%20Interference%20Event%20in%20the.pdf?download=1"
+    ],
+    "filename": "P01_2017_ATC_Radar_Galileo_E6_Event.pdf",
+    "expected_terms": [
+      "radar",
+      "galileo",
+      "arribas"
+    ],
+    "relation": "直接：地面L波段空管雷达→Galileo E6接收机；不是天基雷达。",
+    "method": "记录真实脉冲干扰事件，完成时频分析、源识别及定位，并用GNSS-SDR验证脉冲消隐。还检查通用射频前端选择性不足和非线性问题。",
+    "use": "优先阅读。适合学习从真实干扰观测、接收波形分析到接收机处理验证的完整链条。",
+    "limit": "2017年会议论文。其结果不能直接作为星载雷达动态照射和所有导航接收机的共存结论。2019年同团队期刊扩展版不是另一组完全独立证据。",
+    "access": "作者在Zenodo公开的会议论文，库页面标注CC BY 4.0；保留原PDF不改写。",
+    "status": "已下载并通过PDF结构和关键词检查",
+    "local_file": "02_论文PDF/01_直接相关研究/P01_2017_ATC_Radar_Galileo_E6_Event.pdf",
+    "pages": 25,
+    "bytes": 16955892,
+    "resolved_url": "https://zenodo.org/records/1037280/files/Air%20Traffic%20Radar%20Interference%20Event%20in%20the.pdf?download=1"
+  },
+  {
+    "id": "P02",
+    "group": "01_直接相关研究",
+    "title": "Assessment of the RFI impact on RNSS receivers in the L6 band for a regional navigation satellite system focused on Korea",
+    "title_zh": "面向韩国区域导航系统的L6频段RNSS接收机射频干扰影响评估",
+    "authors": "Subin Lee; Hyung-Jun Hong; Jong-Hoon Won",
+    "year": "2025",
+    "venue": "Scientific Reports 15, article 25135",
+    "doi": "10.1038/s41598-025-10363-w",
+    "page_url": "https://www.nature.com/articles/s41598-025-10363-w",
+    "pdf_urls": [
+      "https://www.nature.com/articles/s41598-025-10363-w.pdf"
+    ],
+    "filename": "P02_2025_L6_RNSS_RFI_Impact_Korea.pdf",
+    "expected_terms": [
+      "rnss",
+      "korea",
+      "interference"
+    ],
+    "relation": "直接相关：1260–1300 MHz实测混合干扰环境→RNSS接收机；包含脉冲无线电定位源，不能把每个干扰都归因于已识别雷达。",
+    "method": "采集真实L6信号，与相同仿真导航信号合成有干扰样本；重建噪声并合成无干扰基线，进行软件接收机对比，分析载噪比、跟踪及定位表现。",
+    "use": "优先阅读。适合设计‘同一导航场景＋实测干扰＋受控基线’接收机级验证，补足只计算劣化比的局限。",
+    "limit": "无干扰参考由重建噪声形成，不是简单同时实测的天然干净环境；源归属有不确定性；不是星载SAR端到端仿真。",
+    "access": "出版商开放获取，CC BY-NC-ND 4.0；提供未经修改原PDF，版权和作者信息保留。",
+    "status": "已下载并通过PDF结构和关键词检查",
+    "local_file": "02_论文PDF/01_直接相关研究/P02_2025_L6_RNSS_RFI_Impact_Korea.pdf",
+    "pages": 16,
+    "bytes": 6947468,
+    "resolved_url": "https://www.nature.com/articles/s41598-025-10363-w.pdf"
+  },
+  {
+    "id": "P03",
+    "group": "01_直接相关研究",
+    "title": "Radio-Frequency Interference Considerations for Utility of the Galileo E6 Signal Based on Long-Term Monitoring by ARFIDAAS",
+    "title_zh": "基于ARFIDAAS长期监测的Galileo E6信号射频干扰与可用性研究",
+    "authors": "Aiden J. Morrison; Nadezda Sokolova; Nicolai Gerrard; Anders Rødningsby; Christian Rost; Laura Ruotsalainen",
+    "year": "2023",
+    "venue": "NAVIGATION 70(1)",
+    "doi": "10.33012/navi.560",
+    "page_url": "https://www.ffi.no/en/publications-archive/radio-frequency-interference-considerations-for-utility-of-the-galileo-e6-signal-based-on-long-term-monitoring-by-arfidaas",
+    "pdf_urls": [
+      "https://www.ffi.no/en/publications-archive/_/service/no.bouvet.ffi/publication-service?fileId=efe7f187-a1ac-4f8f-820a-81345650e869&publicationId=0195fb9a7820-1db0a29c-b5cc-4dc4-9e99-d0a1ad4fdf17"
+    ],
+    "filename": "P03_2023_Galileo_E6_ARFIDAAS_Long_Term.pdf",
+    "expected_terms": [
+      "arfidaas",
+      "galileo",
+      "morrison"
+    ],
+    "relation": "直接相关：包含雷达等合法共频源的真实L波段/E6环境→导航信号可用性。",
+    "method": "利用多年、跨地区的RFI监测观测，讨论E6频段中雷达等系统的干扰，并结合开放数据分量和加密导频的使用条件解释影响。",
+    "use": "适合学习真实环境监测、事件分布和使用场景边界；可用于设计动态分析需要输出的事件统计。",
+    "limit": "不是专门的星载SAR轨道仿真，也不能把全部监测事件都归为雷达；其使用假设与导航信号分量有关。",
+    "access": "作者机构FFI提供公开全文，保持原版。",
+    "status": "已下载并通过PDF结构和关键词检查",
+    "local_file": "02_论文PDF/01_直接相关研究/P03_2023_Galileo_E6_ARFIDAAS_Long_Term.pdf",
+    "pages": 18,
+    "bytes": 3004567,
+    "resolved_url": "https://nva-resource-storage-755923822223.s3.eu-west-1.amazonaws.com/efe7f187-a1ac-4f8f-820a-81345650e869?response-content-type=application%2Fpdf&X-Amz-Security-Token=IQoJb3JpZ2luX2VjELD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJIMEYCIQCvQXrhhJMKAXJ%2FGKMZofnVNVypscDa8bkhMQt1SC908gIhAPEBjtBS1%2BNXz3%2By3ool9aTdU8jeFk029QULQ3yy3o%2BBKvEECHgQAxoMNzU1OTIzODIyMjIzIgzsDiRppPu1%2FHZI8n8qzgTkGD%2BWKaiLiC%2BoIMhtCMcTR2pidHBIvo3ABlGOqfAFhW3OmaKvJ36VCPb8mNM2dTZo15RvKgQT0PHDfmLSQdAxjTIjaLeWHaDLzcFiqWFWaeEOaz6Evfz7gjh1h%2BDxztM7aD8O%2FKX%2FUiSDTLRVEzkK%2BeLq%2F60i00wp7ojlCnGLKLN1%2FG49LH6ILcN1yuIlSQVQVHIRIQhTkUnMSAVFyjrjzJp7LrKnw7fgP%2FDWeQQe4v3tj45eWm4KNr5fKiRH95wbcmeGuuBF6gDzP5TEZimp%2BldoDvvr3V8LpdsB%2FK5GIAPed%2BxUD1MdJrCom02PqXFQb57B6jpaYlQk3xHzHnoQxwnoroCNxaxlaVRpvRjZHP0Fje%2FIvEDbYdM9D31ccCK8p8DICr3Tx3jWnaJORD4DVKynD0OfzPZVzQgm4igDlR71iQp98kNuZLcjFsp%2B9CbLt6UELNQmKvA4tJRF%2FooVI19UuKj67DULBgTDsk0uQTidUUyImEUumgfMWE9L0EaHqtQ4EdeQkEmlgjW3iZrgD3PsMTBr%2FC1tmvJ8%2FfG5hVNZ8EkLeOeeuUVWBf1mq18fWVRnxU3X9OUrXZ9Xe8xDn9R9T%2FJGKefgZ60%2Fk%2F89vOj%2Bg5aKA4YYP%2BCH78eCOUMdm9TPEIEPzZ8Xa6prZbNAK3F6ASQecGjqX%2FlmrWXoatX1xLVyd1ixqjUnYZB4OfXVx3HihoER8ry3Z2yVNpd%2BeCFsSM1OeOCPuMuSzLvyAg%2BVuLhO4WpJhdB6EJrA%2ByJq5hWmJit4huMKuKU9WDDJ3%2BjWBjqiAejsm1CDpwA9Q3%2FX1cuXHaj3WiliE8LE7LoS6DhMcpxcsMyll1VKCDFvWf%2F29SZzqsR4LxxW1j0e%2B7VqNdZZ4CvJKkigp6YmDCXZVND%2FE5yWAoYzjrqSw541XJOnLvYSQhv4hGCJ5NzGzzrm%2FsydHG3NFWg8Zzt4F%2BptpfMDm7gA%2B3IJq7CWnD%2B4KMS9htYiWdlZQJN6iPV1iA0p%2BjG3MHgweQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261022T162700Z&X-Amz-SignedHeaders=host&X-Amz-Credential=ASIA3AAESE2H4X5ORVHE%2F20261022%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Expires=600&X-Amz-Signature=67665f1f94db13da3f511a5a23c125c2219255a094b2de1461bacbb391ce32db"
+  },
+  {
+    "id": "P04",
+    "group": "02_接收机与方法补充",
+    "title": "Interference from terrestrial sources and its impact on the GRAS GPS radio occultation receiver",
+    "title_zh": "地面干扰源对GRAS GPS无线电掩星接收机的影响",
+    "authors": "Oscar Isoz; Stefan A. Buehler; Kjartan Kinch; Magnus Bonnedal; Dennis M. Akos",
+    "year": "2014",
+    "venue": "Radio Science 49(1), pp. 1–6",
+    "doi": "10.1002/2013RS005243",
+    "page_url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2013RS005243",
+    "pdf_urls": [
+      "https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1002/2013RS005243"
+    ],
+    "filename": "P04_2014_Terrestrial_RFI_GRAS_Spaceborne_GPS.pdf",
+    "expected_terms": [
+      "gras",
+      "interference",
+      "isoz"
+    ],
+    "relation": "平台方向不同：地面源（含可能雷达）→星上GRAS GPS接收机；不是星载雷达→地面接收机。",
+    "method": "分析在轨背景噪声和开环低层数据，识别脉冲特征及可能源，再与导航和高层掩星产品质量比较。",
+    "use": "帮助区分‘检测到射频干扰’与‘任务产品发生可测退化’，展示低层监测与高层性能的证据链。",
+    "limit": "所分析数据中未见相应产品明显退化，仅适用于该设备和数据集；不能推广成所有GNSS无影响。正文与摘要中的观测月份表述存在差异，引用时保留原文定位。",
+    "access": "出版商页面标注Free Access；仅尝试正常公开下载。",
+    "status": "未取得PDF",
+    "local_file": "",
+    "pages": 0,
+    "bytes": 0,
+    "resolved_url": ""
+  },
+  {
+    "id": "P05",
+    "group": "02_接收机与方法补充",
+    "title": "An overview of the effects of out-of-band interference on GNSS receivers",
+    "title_zh": "带外干扰影响GNSS接收机的机理综述",
+    "authors": "Christopher J. Hegarty; Dan Bobyn; Joe Grabowski; A. J. Van Dierendonck",
+    "year": "2020",
+    "venue": "NAVIGATION 67(1), pp. 143–161",
+    "doi": "10.1002/navi.345",
+    "page_url": "https://www.ion.org/publications/abstract.cfm?articleID=102846",
+    "alternate_page": "https://navi.ion.org/content/67/1/143",
+    "pdf_urls": [
+      "https://navi.ion.org/content/67/1/143.full.pdf",
+      "https://onlinelibrary.wiley.com/doi/pdf/10.1002/navi.345"
+    ],
+    "filename": "P05_2020_GNSS_Out_of_Band_Interference_Mechanisms.pdf",
+    "expected_terms": [
+      "hegart",
+      "interference",
+      "band"
+    ],
+    "relation": "方法补充：GNSS带外干扰机理，不是专门的雷达或星载SAR算例。",
+    "method": "区分LNA/混频器等前端饱和与去敏、倒易混频、互调、采样混叠，以及干扰源泄漏到GNSS带内的非理想发射。",
+    "use": "适合补充接收链路参考面和非线性分析，尤其是中心频率不重叠但前端仍可能受影响的情况。",
+    "limit": "不能由综述直接取得本项目统一的功率门限或允许劣化。全文若需订阅，不绕过访问控制；失败时仅列出处。",
+    "access": "尝试出版商公开站点，访问失败如实记录。",
+    "status": "未取得PDF",
+    "local_file": "",
+    "pages": 0,
+    "bytes": 0,
+    "resolved_url": ""
+  },
+  {
+    "id": "P06",
+    "group": "02_接收机与方法补充",
+    "title": "GNSS interference mitigation: A measurement and position domain assessment",
+    "title_zh": "GNSS干扰缓解：观测量域与定位域评估",
+    "authors": "Daniele Borio; Ciro Gioia",
+    "year": "2021",
+    "venue": "NAVIGATION 68(1), pp. 93–114 (online 2020)",
+    "doi": "10.1002/navi.391",
+    "page_url": "https://publications.jrc.ec.europa.eu/repository/handle/JRC120179",
+    "alternate_page": "https://navi.ion.org/content/68/1/93",
+    "pdf_urls": [
+      "https://navi.ion.org/content/68/1/93.full.pdf",
+      "https://onlinelibrary.wiley.com/doi/pdf/10.1002/navi.391"
+    ],
+    "filename": "P06_2021_GNSS_Measurement_Position_Domain_Assessment.pdf",
+    "expected_terms": [
+      "borio",
+      "gioia",
+      "mitigation"
+    ],
+    "relation": "方法补充：采用干扰数据评价GNSS算法，不是特定L波段雷达共存结论。",
+    "method": "比较自适应陷波与四种稳健干扰处理技术，考察测距观测量偏差及单点定位，而不仅是载噪比。",
+    "use": "适合设计详评后半段的观测量/PVT验证，检查缓解算法自身是否引入偏差。",
+    "limit": "论文的数据和干扰类型与雷达项目不同；有效算法依赖干扰类别和参数，不能照搬其性能增益。",
+    "access": "出版商标注Open Access；优先公开出版版本。",
+    "status": "未取得PDF",
+    "local_file": "",
+    "pages": 0,
+    "bytes": 0,
+    "resolved_url": ""
+  },
+  {
+    "id": "P07",
+    "group": "02_接收机与方法补充",
+    "title": "Optimal Global Navigation Satellite System pulse blanking in the presence of signal quantisation",
+    "title_zh": "考虑信号量化的GNSS脉冲消隐分析",
+    "authors": "Daniele Borio; Eduardo Cano",
+    "year": "2013",
+    "venue": "IET Signal Processing 7(5), pp. 400–410",
+    "doi": "10.1049/iet-spr.2012.0199",
+    "page_url": "https://ietresearch.onlinelibrary.wiley.com/doi/abs/10.1049/iet-spr.2012.0199",
+    "pdf_urls": [
+      "https://ietresearch.onlinelibrary.wiley.com/doi/pdf/10.1049/iet-spr.2012.0199"
+    ],
+    "filename": "P07_2013_GNSS_Pulse_Blanking_Quantisation.pdf",
+    "expected_terms": [
+      "borio",
+      "cano",
+      "blanking"
+    ],
+    "relation": "方法补充：脉冲干扰、量化与AGC，不是星载雷达几何兼容性分析。",
+    "method": "在量化和AGC缩放条件下建立脉冲消隐的信噪比损失框架，并用仿真及真实数据验证。",
+    "use": "适合理解为什么接收机架构与消隐实现会改变相同PDC下的实际损失。",
+    "limit": "不能把论文的最佳设置当成所有接收机通用配置；仍需设备级验证。",
+    "access": "出版商标注Free Access；只使用正常公开下载。",
+    "status": "未取得PDF",
+    "local_file": "",
+    "pages": 0,
+    "bytes": 0,
+    "resolved_url": ""
+  },
+  {
+    "id": "P08",
+    "group": "02_接收机与方法补充",
+    "title": "卫星导航接收机带外电磁干扰效应研究",
+    "title_zh": "卫星导航接收机带外电磁干扰效应研究",
+    "authors": "张庆龙; 陈亚洲; 于凤全; 张毅; 韩芳林; 周玲宇",
+    "year": "2024",
+    "venue": "系统工程与电子技术 46(8), 2563–2571",
+    "doi": "10.12305/j.issn.1001-506X.2024.08.04",
+    "page_url": "https://www.sys-ele.com/CN/10.12305/j.issn.1001-506X.2024.08.04",
+    "pdf_urls": [],
+    "filename": "P08_2024_CN_GNSS_Out_of_Band_Effects.pdf",
+    "expected_terms": [
+      "卫星导航",
+      "干扰"
+    ],
+    "relation": "中文方法补充：导航接收机带外电磁干扰；非天基雷达专项。",
+    "method": "本次仅依据期刊题名及书目信息列为中文拓展阅读，具体方法和结论需阅读全文后核对。",
+    "use": "可用于补充中文接收机带外效应资料，不替代本方案ITU依据。",
+    "limit": "未核对全文前不概括其试验细节和数值结论；若公开页面不提供可访问PDF，则仅保留书目。",
+    "access": "只跟随期刊公开页面提供的PDF链接，不绕过付费或访问控制。",
+    "status": "已下载并通过PDF结构和关键词检查",
+    "local_file": "02_论文PDF/02_接收机与方法补充/P08_2024_CN_GNSS_Out_of_Band_Effects.pdf",
+    "pages": 9,
+    "bytes": 5201558,
+    "resolved_url": "https://www.sys-ele.com/CN/article/downloadArticleFile.do?attachType=PDF&id=9970"
+  }
+]

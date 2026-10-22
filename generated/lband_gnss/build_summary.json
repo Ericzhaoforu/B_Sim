@@ -1,0 +1,45 @@
+{
+  "documents": {
+    "Lband_Radar_GNSS_Detailed_Assessment.docx": {
+      "paragraphs": 223,
+      "tables": 13,
+      "equation_elements": 52,
+      "bytes": 47519,
+      "sha256": "3c2ac53ee65e16c805528b30bd9ea2d8bcb6073e54f7ab157aa1b3eadd3c4c6f"
+    },
+    "Lband_Radar_GNSS_Papers_Reading_Guide.docx": {
+      "paragraphs": 111,
+      "tables": 2,
+      "equation_elements": 0,
+      "bytes": 36025,
+      "sha256": "d0a9269884c733898e1df1e8d50b5de816e088e3cefb4df67ba68ae62f1f66ff"
+    }
+  },
+  "layout_checks": {
+    "Lband_Radar_GNSS_Papers_Reading_Guide.docx": {
+      "pdf_pages": 8,
+      "nearly_empty_pages": [],
+      "text_outside_page": []
+    },
+    "Lband_Radar_GNSS_Detailed_Assessment.docx": {
+      "pdf_pages": 19,
+      "nearly_empty_pages": [],
+      "text_outside_page": []
+    }
+  },
+  "downloaded": [
+    "P01",
+    "P02",
+    "P03",
+    "P08"
+  ],
+  "not_downloaded": [
+    "P04",
+    "P05",
+    "P06",
+    "P07"
+  ],
+  "pdf_count": 4,
+  "paper_pages": 68,
+  "paper_bytes": 32109485
+}
